@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: csv-analyzer-backend  
+    # environment:
+    #   - FLASK_ENV=production
+    #   - AZUREAPI=${AZURE_API}
+    #   - AZUREVERSION=${AZURE_API_VERSION}
+    #   - AZUREENDPOINT=${AZURE_BASE_URL}
+    #   - FLASK_SECRET_KEY=${FLASK_SECRET_KEY}
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/outputs:/app/outputs
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: csv-analyzer-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gotenberg-pdf
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
